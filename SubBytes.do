@@ -1,19 +1,32 @@
 vsim -gui -l msim_transcript work.SubBytes
 # vsim -gui -l msim_transcript work.SubBytes 
-# Start time: 14:22:39 on Apr 24,2023
+# Start time: 16:09:50 on Apr 24,2023
 # Loading work.SubBytes
 # Loading work.SBox
+add wave -position end  sim:/SubBytes/w0_curr
+add wave -position end  sim:/SubBytes/w1_curr
+add wave -position end  sim:/SubBytes/w2_curr
+add wave -position end  sim:/SubBytes/w3_curr
+add wave -position end  sim:/SubBytes/w0_next
+add wave -position end  sim:/SubBytes/w1_next
+add wave -position end  sim:/SubBytes/w2_next
+add wave -position end  sim:/SubBytes/w3_next
 add wave -position end  sim:/SubBytes/State_curr
 add wave -position end  sim:/SubBytes/State_next
-force -freeze sim:/SubBytes/State_curr 'h00102030405060708090a0b0c0d0e0f0 000
-force -freeze sim:/SubBytes/State_curr 'h4f63760643e0aa85aff8c9d041fa0de4 010
-force -freeze sim:/SubBytes/State_curr 'hcb02818c17d2af9c62aa64428bb25fd7 020
-force -freeze sim:/SubBytes/State_curr 'hf75c7778a327c8ed8cfebfc1a6c37f53 030
-force -freeze sim:/SubBytes/State_curr 'h22ffc916a81474416496f19c64ae2532 040
-force -freeze sim:/SubBytes/State_curr 'h80121e0776fd1d8a8d8c31bc965d1fee 050
-force -freeze sim:/SubBytes/State_curr 'h671ef1fd4e2a1e03dfdcb1ef3d789b30 060
-force -freeze sim:/SubBytes/State_curr 'h0c0370d00c01e622166b8accd6db3a2c 070
-force -freeze sim:/SubBytes/State_curr 'h7255dad30fb80310e00d6c6b40d0527c 080
-force -freeze sim:/SubBytes/State_curr 'ha906b254968af4e9b4bdb2d2f0c44336 090
-force -freeze sim:/SubBytes/State_curr 'h88ec930ef5e7e4b6cc32f4c906d29414 100
-force -freeze sim:/SubBytes/State_curr 'hafb73eeb1cd1b85162280f27fb20d585 110
+force -freeze sim:/SubBytes/w0_curr 'h00102030 000
+force -freeze sim:/SubBytes/w1_curr 'h40506070 000
+force -freeze sim:/SubBytes/w2_curr 'h8090a0b0 000
+force -freeze sim:/SubBytes/w3_curr 'hc0d0e0f0 000
+force -freeze sim:/SubBytes/w0_curr 'h4f637606 010
+force -freeze sim:/SubBytes/w1_curr 'h43e0aa85 010
+force -freeze sim:/SubBytes/w2_curr 'haff8c9d0 010
+force -freeze sim:/SubBytes/w3_curr 'h41fa0de4 010
+force -freeze sim:/SubBytes/w0_curr 'hcb02818c 020
+force -freeze sim:/SubBytes/w1_curr 'h17d2af9c 020
+force -freeze sim:/SubBytes/w2_curr 'h62aa6442 020
+force -freeze sim:/SubBytes/w3_curr 'h8bb25fd7 020
+force -freeze sim:/SubBytes/w0_curr 'hf75c7778 030
+force -freeze sim:/SubBytes/w1_curr 'ha327c8ed 030
+force -freeze sim:/SubBytes/w2_curr 'h8cfebfc1 030
+force -freeze sim:/SubBytes/w3_curr 'ha6c37f53 030
+run 40 ps

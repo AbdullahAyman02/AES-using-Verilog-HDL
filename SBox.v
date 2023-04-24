@@ -1,3 +1,8 @@
+//-----------------------------------------------------
+/*
+Author: Abdullah Ayman
+*/
+//-----------------------------------------------------
 module SBox (
     sbox_in,
     sbox_out
@@ -25,6 +30,7 @@ assign sbox_out =
     sbox_in == 8'h0D ? 8'hD7 :
     sbox_in == 8'h0E ? 8'hAB :
     sbox_in == 8'h0F ? 8'h76 :
+
     sbox_in == 8'h10 ? 8'hCA :
     sbox_in == 8'h11 ? 8'h82 :
     sbox_in == 8'h12 ? 8'hC9 :
@@ -41,6 +47,7 @@ assign sbox_out =
     sbox_in == 8'h1D ? 8'hA4 :
     sbox_in == 8'h1E ? 8'h72 :
     sbox_in == 8'h1F ? 8'hC0 :
+
     sbox_in == 8'h20 ? 8'hB7 :
     sbox_in == 8'h21 ? 8'hFD :
     sbox_in == 8'h22 ? 8'h93 :
@@ -57,6 +64,7 @@ assign sbox_out =
     sbox_in == 8'h2D ? 8'hD8 :
     sbox_in == 8'h2E ? 8'h31 :
     sbox_in == 8'h2F ? 8'h15 :
+
     sbox_in == 8'h30 ? 8'h04 :
     sbox_in == 8'h31 ? 8'hC7 :
     sbox_in == 8'h32 ? 8'h23 :
@@ -73,6 +81,7 @@ assign sbox_out =
     sbox_in == 8'h3D ? 8'h27 :
     sbox_in == 8'h3E ? 8'hB2 :
     sbox_in == 8'h3F ? 8'h75 :
+
     sbox_in == 8'h40 ? 8'h09 :
     sbox_in == 8'h41 ? 8'h83 :
     sbox_in == 8'h42 ? 8'h2C :
@@ -89,6 +98,7 @@ assign sbox_out =
     sbox_in == 8'h4D ? 8'hE3 :
     sbox_in == 8'h4E ? 8'h2F :
     sbox_in == 8'h4F ? 8'h84 :
+
     sbox_in == 8'h50 ? 8'h53 :
     sbox_in == 8'h51 ? 8'hD1 :
     sbox_in == 8'h52 ? 8'h00 :
@@ -105,6 +115,7 @@ assign sbox_out =
     sbox_in == 8'h5D ? 8'h4C :
     sbox_in == 8'h5E ? 8'h58 :
     sbox_in == 8'h5F ? 8'hCF :
+
     sbox_in == 8'h60 ? 8'hD0 :
     sbox_in == 8'h61 ? 8'hEF :
     sbox_in == 8'h62 ? 8'hAA :
@@ -121,6 +132,7 @@ assign sbox_out =
     sbox_in == 8'h6D ? 8'h3C :
     sbox_in == 8'h6E ? 8'h9F :
     sbox_in == 8'h6F ? 8'hA8 :
+
     sbox_in == 8'h70 ? 8'h51 :
     sbox_in == 8'h71 ? 8'hA3 :
     sbox_in == 8'h72 ? 8'h40 :
@@ -137,6 +149,7 @@ assign sbox_out =
     sbox_in == 8'h7D ? 8'hFF :
     sbox_in == 8'h7E ? 8'hF3 :
     sbox_in == 8'h7F ? 8'hD2 :
+
     sbox_in == 8'h80 ? 8'hCD :
     sbox_in == 8'h81 ? 8'h0C :
     sbox_in == 8'h82 ? 8'h13 :
@@ -153,6 +166,7 @@ assign sbox_out =
     sbox_in == 8'h8D ? 8'h5D :
     sbox_in == 8'h8E ? 8'h19 :
     sbox_in == 8'h8F ? 8'h73 :
+
     sbox_in == 8'h90 ? 8'h60 :
     sbox_in == 8'h91 ? 8'h81 :
     sbox_in == 8'h92 ? 8'h4F :
@@ -169,6 +183,7 @@ assign sbox_out =
     sbox_in == 8'h9D ? 8'h5E :
     sbox_in == 8'h9E ? 8'h0B :
     sbox_in == 8'h9F ? 8'hDB :
+
     sbox_in == 8'hA0 ? 8'hE0 :
     sbox_in == 8'hA1 ? 8'h32 :
     sbox_in == 8'hA2 ? 8'h3A :
@@ -185,6 +200,7 @@ assign sbox_out =
     sbox_in == 8'hAD ? 8'h95 :
     sbox_in == 8'hAE ? 8'hE4 :
     sbox_in == 8'hAF ? 8'h79 :
+
     sbox_in == 8'hB0 ? 8'hE7 :
     sbox_in == 8'hB1 ? 8'hC8 :
     sbox_in == 8'hB2 ? 8'h37 :
@@ -201,6 +217,7 @@ assign sbox_out =
     sbox_in == 8'hBD ? 8'h7A :
     sbox_in == 8'hBE ? 8'hAE :
     sbox_in == 8'hBF ? 8'h08 :
+
     sbox_in == 8'hC0 ? 8'hBA :
     sbox_in == 8'hC1 ? 8'h78 :
     sbox_in == 8'hC2 ? 8'h25 :
@@ -217,6 +234,7 @@ assign sbox_out =
     sbox_in == 8'hCD ? 8'hBD :
     sbox_in == 8'hCE ? 8'h8B :
     sbox_in == 8'hCF ? 8'h8A :
+
     sbox_in == 8'hD0 ? 8'h70 :
     sbox_in == 8'hD1 ? 8'h3E :
     sbox_in == 8'hD2 ? 8'hB5 :
@@ -233,6 +251,7 @@ assign sbox_out =
     sbox_in == 8'hDD ? 8'hC1 :
     sbox_in == 8'hDE ? 8'h1D :
     sbox_in == 8'hDF ? 8'h9E :
+
     sbox_in == 8'hE0 ? 8'hE1 :
     sbox_in == 8'hE1 ? 8'hF8 :
     sbox_in == 8'hE2 ? 8'h98 :
@@ -249,6 +268,7 @@ assign sbox_out =
     sbox_in == 8'hED ? 8'h55 :
     sbox_in == 8'hEE ? 8'h28 :
     sbox_in == 8'hEF ? 8'hDF :
+
     sbox_in == 8'hF0 ? 8'h8C :
     sbox_in == 8'hF1 ? 8'hA1 :
     sbox_in == 8'hF2 ? 8'h89 :
