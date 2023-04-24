@@ -1,17 +1,23 @@
 vsim work.ShiftRows
 # vsim work.ShiftRows 
-# Start time: 01:43:02 on Apr 24,2023
+# Start time: 22:54:43 on Apr 24,2023
 # Loading work.ShiftRows
 add wave -position insertpoint  \
-sim:/ShiftRows/S0in \
-sim:/ShiftRows/S1in \
-sim:/ShiftRows/S2in \
-sim:/ShiftRows/S3in \
-sim:/ShiftRows/S0out \
-sim:/ShiftRows/S1out \
-sim:/ShiftRows/S2out \
-sim:/ShiftRows/S3out
-force -freeze sim:/ShiftRows/S0in 'h12345678 0
-force -freeze sim:/ShiftRows/S1in 'h24681357 0
-force -freeze sim:/ShiftRows/S2in 'h96324511 0
-force -freeze sim:/ShiftRows/S3in 'h18372643 0
+sim:/ShiftRows/w0_curr \
+sim:/ShiftRows/w1_curr \
+sim:/ShiftRows/w2_curr \
+sim:/ShiftRows/w3_curr \
+sim:/ShiftRows/w0_next \
+sim:/ShiftRows/w1_next \
+sim:/ShiftRows/w2_next \
+sim:/ShiftRows/w3_next
+force -freeze sim:/ShiftRows/w0_curr 'h7a9f1027 0
+force -freeze sim:/ShiftRows/w1_curr 'h89d5f50b 0
+force -freeze sim:/ShiftRows/w2_curr 'h2beffd9f 0
+force -freeze sim:/ShiftRows/w3_curr 'h3dca4ea7 0
+run
+force -freeze sim:/ShiftRows/w0_curr 'h12345678 0
+force -freeze sim:/ShiftRows/w1_curr 'h24681357 0
+force -freeze sim:/ShiftRows/w2_curr 'h96324511 0
+force -freeze sim:/ShiftRows/w3_curr 'h18372643 0
+run
