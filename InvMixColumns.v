@@ -13,42 +13,38 @@ module InvMixColumns (
 	out
 );
 
-function [7:0] mul2(input [7:0] x,input integer number);
-	integer i;
+function [7:0] mul2;
+	input [7:0] x;
 	begin
-	for(i = 0;i<number;i = i + 1)
-	begin
-		x = (x[7]) ? ((x << 1) ^ 8'h1b) : x << 1;
-	end
-	mul2 = x;
+		mul2 = (x[7]) ? ((x << 1) ^ 8'h1b) : x << 1;
 	end
 endfunction
 
 function [7:0] mul9;
 	input [7:0] x;
 	begin
-	mul9 = mul2(x,3) ^ x;
+	mul9 = mul2(mul2(mul2(x))) ^ x;
 	end
 endfunction
 
 function [7:0] mulb;
 	input [7:0] x;
 	begin
-	mulb = mul2(x,3) ^ mul2(x,1) ^ x;
+	mulb = mul2(mul2(mul2(x))) ^ mul2(x) ^ x;
 	end
 endfunction
 
 function [7:0] muld;
 input [7:0] x;
 	begin
-	muld = mul2(x,3) ^ mul2(x,2) ^ x;
+	muld = mul2(mul2(mul2(x))) ^ mul2(mul2(x)) ^ x;
 	end
 endfunction
 
 function [7:0] mule;
 input [7:0] x;
 	begin
-	mule = mul2(x,3) ^ mul2(x,2) ^ mul2(x,1);
+	mule = mul2(mul2(mul2(x))) ^ mul2(mul2(x)) ^ mul2(x);
 	end
 endfunction
 
