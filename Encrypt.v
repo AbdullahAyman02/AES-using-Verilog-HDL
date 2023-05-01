@@ -2,7 +2,7 @@ module Encrypt(
 	in,
 	out,
 	//Nr,
-	key
+	w
 );
 
 input [127:0]in;
@@ -11,18 +11,14 @@ localparam Nr = 10;
 
 localparam key_size = 4*(Nr+1)*32 - 1;
 
-input [127:0]key;
+input [key_size:0]w;
 output [127:0]out;
-
-wire [key_size:0]w;
-
-KeyExpansion key_expansion(key, w);
 
 wire [127:0] sub_byte_out [Nr - 1 : 0];
 
 wire [127:0] shift_rows_out [Nr - 1 : 0];
 
-wire [127:0] mix_columns_out [Nr - 2 : 0];
+wire [127:0] mix_columns_out [Nr - 1 : 0];
 
 wire [127:0] add_round_key_out [Nr : 0];
 
@@ -40,7 +36,7 @@ end
 
 SubBytes sub_bytes2(add_round_key_out[Nr - 1], sub_byte_out[Nr - 1]);
 ShiftRows shift_rows2(sub_byte_out[Nr - 1][127:96], sub_byte_out[Nr - 1][95 :64], sub_byte_out[Nr - 1][63 :32], sub_byte_out[Nr - 1][31 : 0], shift_rows_out[Nr - 1][127:96], shift_rows_out[Nr - 1][95 :64], shift_rows_out[Nr - 1][63 :32], shift_rows_out[Nr - 1][31 : 0]);
-AddRoundKey add_round_key3(shift_rows_out[Nr - 1], w[127:0], add_round_key_out[Nr]);
+AddRoundKey add_round_key3(shift_rows, w[127:0], add_round_key_out[Nr]);
 
 assign out = add_round_key_out[Nr];
 
