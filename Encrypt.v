@@ -1,22 +1,27 @@
-module Encrypt(
+module Encrypt #(parameter Nk=4,parameter Nr=10,parameter Nb = 4)(
 	in,
 	out,
-	//Nr,
 	key
 );
 
 input [127:0]in;
-//input [3:0] Nr;
-localparam Nr = 10;
 
-localparam key_size = 4*(Nr+1)*32 - 1;
+localparam key_size = Nb*(Nr+1)*32 - 1;
 
-input [127:0]key;
+input [255:0]key;
+
 output [127:0]out;
 
 wire [key_size:0]w;
+wire [1407:0]w1;
+wire [1663:0]w2;
+wire [1919:0]w3;
 
-KeyExpansion key_expansion(key, w);
+KeyExpansion key_expansion(key[127:0], w1);
+KeyExpansion192 key_expansion192(key[191:0], w2);
+KeyExpansion256 key_expansion256(key[255:0], w3);
+
+assign w = Nk == 4 ? w1 : Nk == 6 ? w2 : w3;
 
 wire [127:0] sub_byte_out [Nr - 1 : 0];
 
