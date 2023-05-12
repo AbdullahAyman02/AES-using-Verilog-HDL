@@ -2,29 +2,29 @@ module SPI(
     rst,
     clk,
     cs,
-    serialkeyin,
+    miso,
     parallelkeyout,
-    serialmessagein,
     parallelmessageout,
+		mosi,
     parallelprocessedin,
-    serialprocessedout,
+		count
 );
 
 input rst;
 input clk;
 input cs;
-input serialkeyin;
-input serialmessagein;
+input miso;
 input [127:0] parallelprocessedin;
 output reg [255:0] parallelkeyout;
 output reg [127:0] parallelmessageout;
-output reg serialprocessedout;
+output reg mosi;
+output reg [8:0] count;
 
-integer count = 0;
+integer counter = 0;
 
 // 1 - Input
 // 0 - Output
-reg status = 1'b1;
+reg status;
 
 always @ (posedge clk)
 begin
@@ -35,36 +35,54 @@ begin
 			end
 	else if ((cs == 1'b1) && (status == 1'b1)) 
 			begin
-					if(count <= 127)
+					if(counter <= 128)
 					begin
-							parallelkeyout[count-1] <= serialkeyin;
-							parallelmessageout[count-1] <= serialmessagein;
-					end else if (count <= 255)
+						parallelmessageout[counter-1] <= miso;
+					end else if (counter <= 384)
 					begin
-							parallelkeyout[count-1] <= serialmessagein;
+						parallelkeyout[counter-129] <= miso;
 					end
 			end
         
 end
 
-always @ (negedge cs)
+always @ (negedge cs, posedge rst)
 begin
-    status = ~status;
+	if(rst)
+		status = 1'b1;
+	else
+		status = ~status;
 end
 
 always @ (negedge clk)
-    if ((cs == 1'b1) && (status == 1'b0)) 
-    begin
-        if(count <= 127)
-        begin
-            serialprocessedout <= parallelprocessedin[count-1];
-        end
-    end
+begin
+	if ((cs == 1'b1) && (status == 1'b0)) 
+	begin
+			if(counter <= 128)
+			begin
+					mosi <= parallelprocessedin[counter-1];
+			end
+	end
+end
 
 always @ (clk)
-	if(count <= 255 && cs && clk != status)
-		count = count + 1;
+begin
+	if(counter <= 383 && cs && clk != status)
+		counter = counter + 1;
   else if (!cs || rst)
-		count = 0;
+	begin
+	  if (counter == 384 && !rst)
+			count <= 256;
+		else if (counter > 320 && !rst)
+			count <= 192;
+		else if (counter > 256 && !rst)
+			count <= 126;
+		else
+			count <= 0;
+		counter = 0;
+	end
+	else
+		counter = counter;
+end
 
 endmodule
