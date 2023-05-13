@@ -1,6 +1,6 @@
 module TestWrapper(
-	input clk, rst,
-	output reg flag
+	input clk, rst, cs,
+	output flag
 );
 
 // Declare inputs as regs and outputs as wires
@@ -13,17 +13,31 @@ module TestWrapper(
 	// 1->128 2->192 3->256
 	// reg [0:3] keysize_reg = 4'h1
 	reg state;
-	reg cs;
    
 	integer counter;
  
-	Encrypt enc(
-		rst,
-		clk,
-		cs,
-		miso,
-		mosi
+	Encrypt #(.Nk(4), .Nr(10), .Nb(4)) enc128(
+		.rst(rst),
+		.clk(clk),
+		.cs(cs),
+		.miso(miso),
+		.mosi(mosi)
 	);
+	
+	// Encrypt enc192 (parameter Nk=6,parameter Nr=12,parameter Nb = 4)(
+	// 	rst,
+	// 	clk,
+	// 	cs,
+	// 	miso,
+	// 	mosi
+	// );
+	// Encrypt enc256 (parameter Nk=8,parameter Nr=14,parameter Nb = 4)(
+	// 	rst,
+	// 	clk,
+	// 	cs,
+	// 	miso,
+	// 	mosi
+	// );
 	
 	always @ (negedge cs, posedge rst)
 	begin
@@ -44,22 +58,20 @@ module TestWrapper(
 		end
 	end
  
-	always @(posedge clk, posedge(rst)) 
+	always @(posedge clk, posedge rst, negedge cs)
 	begin
-	if (rst) 
+	if (rst || !cs) 
 		begin
-			cs = 1'b1;
-			counter = 0;
-			flag = 1'b0;
+			counter = -1;
 		end
-	else 
+	else if (!rst)
 		begin
-			if(!state)
+			if(!state && counter <= 127)
 				ciphertext_reg[counter] = mosi;
-			if (counter <= 383)
+			if (counter <= 255)
 				counter = counter + 1;
-			else
-				flag = (ciphertext_reg == 128'h69c4e0d86a7b0430d8cdb78070b4c55a);
 		end
   end
+
+	assign flag = (ciphertext_reg == 128'h69c4e0d86a7b0430d8cdb78070b4c55a);
  endmodule

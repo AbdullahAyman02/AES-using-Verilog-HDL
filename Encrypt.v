@@ -1,16 +1,30 @@
 module Encrypt #(parameter Nk=4,parameter Nr=10,parameter Nb = 4)(
-	in,
-	out,
-	key
+	rst,
+    clk,
+    cs,
+    miso,
+    mosi
 );
 
-input [127:0]in;
+input rst, clk, cs, miso;
+output mosi;
+
+wire [127:0]in;
+wire [127:0]out;
+wire [Nk*32-1:0]key;
 
 localparam key_size = Nb*(Nr+1)*32 - 1;
 
-input [255:0]key;
-
-output [127:0]out;
+SPI #(Nk) serial(
+    rst,
+    clk,
+    cs,
+    miso,
+    key,
+    in,
+	mosi,
+    out
+);
 
 wire [key_size:0]w;
 wire [1407:0]w1;
@@ -18,8 +32,8 @@ wire [1663:0]w2;
 wire [1919:0]w3;
 
 KeyExpansion key_expansion(key[127:0], w1);
-KeyExpansion192 key_expansion192(key[191:0], w2);
-KeyExpansion256 key_expansion256(key[255:0], w3);
+// KeyExpansion192 key_expansion192(key[191:0], w2);
+// KeyExpansion256 key_expansion256(key[255:0], w3);
 
 assign w = Nk == 4 ? w1 : Nk == 6 ? w2 : w3;
 
