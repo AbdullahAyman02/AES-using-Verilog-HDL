@@ -24,7 +24,7 @@ integer counter = 0;
 
 // 1 - Input
 // 0 - Output
-reg status;
+reg state;
 
 always @ (posedge clk)
 begin
@@ -33,7 +33,7 @@ begin
 					parallelkeyout[255:0] <= {(256){1'b0}};
 					parallelmessageout[127:0] <= {(128){1'b0}};
 			end
-	else if ((cs == 1'b1) && (status == 1'b1)) 
+	else if ((cs == 1'b1) && (state == 1'b1)) 
 			begin
 					if(counter <= 128)
 					begin
@@ -49,14 +49,14 @@ end
 always @ (negedge cs, posedge rst)
 begin
 	if(rst)
-		status = 1'b1;
+		state = 1'b1;
 	else
-		status = ~status;
+		state = ~state;
 end
 
 always @ (negedge clk)
 begin
-	if ((cs == 1'b1) && (status == 1'b0)) 
+	if ((cs == 1'b1) && (state == 1'b0)) 
 	begin
 			if(counter <= 128)
 			begin
@@ -67,7 +67,7 @@ end
 
 always @ (clk)
 begin
-	if(counter <= 383 && cs && clk != status)
+	if(counter <= 383 && cs && clk != state)
 		counter = counter + 1;
   else if (!cs || rst)
 	begin
@@ -76,7 +76,7 @@ begin
 		else if (counter > 320 && !rst)
 			count <= 192;
 		else if (counter > 256 && !rst)
-			count <= 126;
+			count <= 128;
 		else
 			count <= 0;
 		counter = 0;
