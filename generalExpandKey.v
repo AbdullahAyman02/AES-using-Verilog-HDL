@@ -19,13 +19,13 @@ assign w3_beforeSub = w_next[127 : 96];
 
 integer i;
 
-always @(w_curr) begin 
+always @* begin 
 
 for (i = 1;i <=Nk ; i = i+ 1) begin 
 if(i == 1) begin
 w_next[31:0] = w_curr[31:0] ^ subWord ^ rcon;
 end 
-else if (Nk == 8 && i == 4) begin 
+else if (Nk == 8 && i == 5) begin 
 w_next[32*i - 1 -: 32 ] = w_curr[32*i - 1 -: 32] ^ w3_afterSub;
 end
 else begin 
