@@ -7,6 +7,7 @@ module SPI#(parameter Nk=4)(
     parallelmessageout,
 		mosi,
     parallelprocessedin,
+	 ready
 );
 
 input rst;
@@ -17,6 +18,7 @@ input [127:0] parallelprocessedin;
 output reg [Nk*32-1:0] parallelkeyout;
 output reg [127:0] parallelmessageout;
 output reg mosi;
+output reg ready;
 
 integer counter = 0;
 
@@ -47,9 +49,16 @@ always @ (negedge cs, posedge rst)
 begin
 	if(rst)
 		state = 1'b1;
-	else
+	else if(!cs)
+	begin
 		state = ~state;
+		if(!state && (counter == (Nk*32-1+128)+1))
+			ready = 1'b1;
+		else
+			ready = 1'b0;
+	end
 end
+
 
 always @ (negedge clk)
 begin

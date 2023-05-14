@@ -1,4 +1,4 @@
-module Encrypt #(parameter Nk=4,parameter Nr=10,parameter Nb = 4)(
+module Encrypt #(parameter Nk=8,parameter Nr=14,parameter Nb = 4)(
 	rst,
     clk,
     cs,
@@ -10,10 +10,10 @@ input rst, clk, cs, miso;
 output mosi;
 
 wire [127:0]in;
-wire [127:0]out;
+reg [127:0]out;
 wire [Nk*32-1:0]key;
 
-localparam key_size = Nb*(Nr+1)*32 - 1;
+localparam key_size = 1919;
 
 SPI #(Nk) serial(
     rst,
@@ -23,45 +23,88 @@ SPI #(Nk) serial(
     key,
     in,
 	mosi,
-    out
+    out, 
+	 ready
 );
 
-wire [key_size:0]w;
+wire [1919:0]w;
 wire [1407:0]w1;
 wire [1663:0]w2;
 wire [1919:0]w3;
 
-KeyExpansion key_expansion(key[127:0], w1);
-// KeyExpansion192 key_expansion192(key[191:0], w2);
-// KeyExpansion256 key_expansion256(key[255:0], w3);
+reg [127:0] buffer;
+integer round = 0;
+wire [255:0]key_to_expand;
 
-assign w = Nk == 4 ? w1 : Nk == 6 ? w2 : w3;
+assign key_to_expand = (Nk == 4) ? {{(128){1'b0}},key} : (Nk == 6) ? {{(64){1'b0}},key} : key;
 
-wire [127:0] sub_byte_out [Nr - 1 : 0];
+KeyExpansion key_expansion(key_to_expand[127:0], w1);
+KeyExpansion192 key_expansion192(key_to_expand[191:0], w2);
+KeyExpansion256 key_expansion256(key_to_expand[255:0], w3);
 
-wire [127:0] shift_rows_out [Nr - 1 : 0];
+wire [127:0] w_round;
 
-wire [127:0] mix_columns_out [Nr - 2 : 0];
+assign w_round = (round == 0) ? w[key_size: key_size - 127]:
+					 (round == 1) ? w[key_size - 128: key_size - 255]:
+					 (round == 2) ? w[key_size - 256: key_size - 383]:
+					 (round == 3) ? w[key_size - 384: key_size - 511]:
+					 (round == 4) ? w[key_size - 512: key_size - 639]:
+					 (round == 5) ? w[key_size - 640: key_size - 767]:
+					 (round == 6) ? w[key_size - 768: key_size - 895]:
+					 (round == 7) ? w[key_size - 896: key_size - 1023]:
+					 (round == 8) ? w[key_size - 1024: key_size - 1151]:
+					 (round == 9) ? w[key_size - 1152: key_size - 1279]:
+					 (round == 10) ? w[key_size - 1280: key_size - 1407]:
+					 (round == 11) ? w[key_size - 1408: key_size - 1535]:
+					 (round == 12) ? w[key_size - 1536: key_size - 1663]:
+					 (round == 13) ? w[key_size - 1664: key_size - 1791]:
+					 w[key_size - 1792: key_size - 1919];
+								 
+assign w = (Nk == 4) ? {w1,{(512){1'b0}}} : (Nk == 6) ? {w2,{(256){1'b0}}} : w3;
 
-wire [127:0] add_round_key_out [Nr : 0];
+wire [127:0] sub_byte_out, sub_byte_out_last;
 
-AddRoundKey add_round_key1(in, w[key_size:key_size - 127],add_round_key_out[0]);
+wire [127:0] shift_rows_out, shift_rows_out_last;
+
+wire [127:0] mix_columns_out;
+
+wire [127:0] add_round_key_out;
+
+reg [127:0] inround;
+wire [127:0] outfirst, outround, outroundlast;
+
+AddRoundKey add_round_key1(in, w[key_size: key_size - 127], outfirst);
   
-genvar i;
-generate
-for (i = 1; i < Nr; i = i + 1)
-begin: encrypt
-    SubBytes sub_bytes1(add_round_key_out[i - 1], sub_byte_out[i - 1]);
-    ShiftRows shift_rows1(sub_byte_out[i - 1][127:96], sub_byte_out[i - 1][95 :64], sub_byte_out[i - 1][63 :32], sub_byte_out[i - 1][31 : 0], shift_rows_out[i - 1][127:96], shift_rows_out[i - 1][95 :64], shift_rows_out[i - 1][63 :32], shift_rows_out[i - 1][31 : 0]);
-    MixColumns mix_columns(shift_rows_out[i - 1],mix_columns_out[i - 1]);
-    AddRoundKey add_round_key2(mix_columns_out[i - 1],w[key_size - (i*128):key_size - (i*128) - 127],add_round_key_out[i]);
+SubBytes sub_bytes1(inround, sub_byte_out);
+ShiftRows shift_rows1(sub_byte_out[127:96], sub_byte_out[95 :64], sub_byte_out[63 :32], sub_byte_out[31 : 0], shift_rows_out[127:96], shift_rows_out[95 :64], shift_rows_out[63 :32], shift_rows_out[31 : 0]);
+MixColumns mix_columns(shift_rows_out,mix_columns_out);
+AddRoundKey add_round_key2(mix_columns_out, w_round, outround);
+
+always@( posedge clk)
+begin
+	inround = buffer;
+	if(round == Nr)
+	begin
+		out = outroundlast;
+		round = round + 1;
+	end
+	else if (rst)
+		round = 0;
+	else if(round < Nr && ready)
+		round = round + 1;
 end
 
-SubBytes sub_bytes2(add_round_key_out[Nr - 1], sub_byte_out[Nr - 1]);
-ShiftRows shift_rows2(sub_byte_out[Nr - 1][127:96], sub_byte_out[Nr - 1][95 :64], sub_byte_out[Nr - 1][63 :32], sub_byte_out[Nr - 1][31 : 0], shift_rows_out[Nr - 1][127:96], shift_rows_out[Nr - 1][95 :64], shift_rows_out[Nr - 1][63 :32], shift_rows_out[Nr - 1][31 : 0]);
-AddRoundKey add_round_key3(shift_rows_out[Nr - 1], w[127:0], add_round_key_out[Nr]);
+always@( negedge clk)
+begin
 
-assign out = add_round_key_out[Nr];
+	if(round == 0)
+		buffer = outfirst;
+	else if (!rst)
+		buffer = outround;
+end
 
-endgenerate
+SubBytes sub_bytes2(inround, sub_byte_out_last);
+ShiftRows shift_rows2(sub_byte_out_last[127:96], sub_byte_out_last[95 :64], sub_byte_out_last[63 :32], sub_byte_out_last[31 : 0], shift_rows_out_last[127:96], shift_rows_out_last[95 :64], shift_rows_out_last[63 :32], shift_rows_out_last[31 : 0]);
+AddRoundKey add_round_key3(shift_rows_out_last, w_round, outroundlast);
+
 endmodule
