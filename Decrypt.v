@@ -3,11 +3,13 @@ module Decrypt #(parameter Nk=8,parameter Nr=14,parameter Nb = 4)(
     clk,
     cs,
     miso,
-    mosi
+    mosi,
+	 finished
 );
 
 input rst, clk, cs, miso;
 output mosi;
+output reg finished;
 wire [127:0]in;
 reg [127:0]out;
 wire [Nk*32-1:0]key;
@@ -83,15 +85,22 @@ InvMixColumns mix_columns(add_round_key_out, outround);
 always@( posedge clk)
 begin
 	inround = buffer;
+	if(rst)
+	begin
+		round = Nr;
+		finished = 1'b0;
+	end
 	if(round == 0)
 	begin
 		out = outroundlast;
 		round = round - 1;
+		if(ready)
+			finished = 1'b1;
 	end
-	else if (rst)
-		round = Nr;
 	else if(round >= 0 && ready)
 		round = round - 1;
+	else if (!cs)
+		finished = 1'b0;
 end
 
 always@( negedge clk)

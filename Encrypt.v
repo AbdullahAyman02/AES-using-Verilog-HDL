@@ -3,11 +3,13 @@ module Encrypt #(parameter Nk=8,parameter Nr=14,parameter Nb = 4)(
     clk,
     cs,
     miso,
-    mosi
+    mosi,
+	 finished
 );
 
 input rst, clk, cs, miso;
 output mosi;
+output reg finished = 1'b0;
 
 wire [127:0]in;
 reg [127:0]out;
@@ -83,15 +85,22 @@ AddRoundKey add_round_key2(mix_columns_out, w_round, outround);
 always@( posedge clk)
 begin
 	inround = buffer;
+	if(rst)
+	begin
+		round = 0;
+		finished = 1'b0;
+	end
 	if(round == Nr)
 	begin
 		out = outroundlast;
 		round = round + 1;
+		if(ready)
+			finished = 1'b1;
 	end
-	else if (rst)
-		round = 0;
 	else if(round < Nr && ready)
 		round = round + 1;
+	else if(!cs)
+		finished = 1'b0;
 end
 
 always@( negedge clk)

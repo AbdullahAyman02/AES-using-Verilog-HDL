@@ -1,5 +1,5 @@
 module TestWrapper(
-	input clk, rst, csEncrypt, csDecrypt,
+	input clk, rst,
 	output flagEncrypt, flagDecrypt
 );
 
@@ -8,10 +8,13 @@ module TestWrapper(
 	wire	mosiEncrypt;
 	wire 	misoDecrypt;
 	wire	mosiDecrypt;
+	wire finishedEncrypt, finishedDecrypt;
 	reg [127:0] ciphertext_reg;
 	reg [127:0] originaltext_reg;
 	reg	[127:0] key_reg = 128'h000102030405060708090a0b0c0d0e0f;
 	reg [127:0] plaintext_reg = 128'h00112233445566778899aabbccddeeff;
+	reg csEncrypt = 1'b1;
+	reg csDecrypt = 1'b0;
 
 	// 1->128 2->192 3->256
 	// reg [0:3] keysize_reg = 4'h1
@@ -26,7 +29,8 @@ module TestWrapper(
 		.clk(clk),
 		.cs(csEncrypt),
 		.miso(misoEncrypt),
-		.mosi(mosiEncrypt)
+		.mosi(mosiEncrypt),
+		.finished(finishedEncrypt)
 	);
 	
 	Decrypt #(.Nk(4), .Nr(10), .Nb(4)) dec128(
@@ -34,7 +38,8 @@ module TestWrapper(
 		.clk(clk),
 		.cs(csDecrypt),
 		.miso(misoDecrypt),
-		.mosi(mosiDecrypt)
+		.mosi(mosiDecrypt),
+		.finished(finishedDecrypt)
 	);
 
 	// Encrypt enc192 (parameter Nk=6,parameter Nr=12,parameter Nb = 4)(
@@ -72,55 +77,74 @@ module TestWrapper(
 	begin
 		if (stateEncrypt)
 		begin
-			if(counterEncrypt < 128)
-				misoEncrypt = plaintext_reg[counterEncrypt];
+			if(counterEncrypt < 127)
+				misoEncrypt = plaintext_reg[counterEncrypt+1];
 			else
-				misoEncrypt = key_reg[counterEncrypt - 128];
+				misoEncrypt = key_reg[counterEncrypt - 127];
 		end
 	end
-
-	// always @(negedge clk) 
-	// begin
-	// 	if (stateDecrypt)
-	// 	begin
-	// 		if(counterDecrypt < 128)
-	// 			misoDecrypt = mosiEncrypt;
-	// 		else
-	// 			misoDecrypt = key_reg[counterDecrypt - 128];
-	// 	end
-	// end
  
-	always @(posedge clk, posedge rst, negedge csEncrypt)
+	always @(posedge clk)
 	begin
-	if (rst || !csEncrypt) 
+	if (!rst)
 		begin
-			counterEncrypt = -1;
-		end
-	else if (!rst)
-		begin
-			if(!stateEncrypt && counterEncrypt <= 127)
-				ciphertext_reg[counterEncrypt] = mosiEncrypt;
-			if (counterEncrypt <= 255)
-				counterEncrypt = counterEncrypt + 1;
+			if(!stateEncrypt && counterEncrypt <= 128)
+				ciphertext_reg[counterEncrypt-1] = mosiEncrypt;
 		end
   end
 
-	always @(posedge clk, posedge rst, negedge csDecrypt)
+	always @(posedge clk)
 	begin
-	if (rst || !csDecrypt) 
-		begin
-			counterDecrypt = -1;
-		end
-	else if (!rst)
+	if (!rst)
 		begin
 			if(!stateDecrypt && counterDecrypt <= 127)
 				originaltext_reg[counterDecrypt] = mosiDecrypt;
-			if (counterDecrypt <= 255)
-				counterDecrypt = counterDecrypt + 1;
 		end
   end
 
-	assign flagEncrypt = (ciphertext_reg == 128'h69c4e0d86a7b0430d8cdb78070b4c55a);
-	assign flagDecrypt = (originaltext_reg == 128'h00112233445566778899aabbccddeeff);
-	assign misoDecrypt = (counterDecrypt < 128) ? mosiEncrypt : key_reg[counterDecrypt - 128];
+	always @ (clk)
+	begin
+	if(counterEncrypt <= 255 && csEncrypt && clk == stateEncrypt && !rst)
+		counterEncrypt = counterEncrypt + 1;
+  else if (!csEncrypt || rst)
+	begin
+		counterEncrypt = -1;
+	end
+	if(counterDecrypt <= 255 && csDecrypt && clk != stateDecrypt && !rst)
+		counterDecrypt = counterDecrypt + 1;
+  else if (!csDecrypt || rst)
+	begin
+		counterDecrypt = -1;
+	end
+	end
+
+	always@(negedge clk, posedge rst)
+	begin
+		if(rst)
+		begin
+			csEncrypt = 1'b1;
+			csDecrypt = 1'b0;
+		end
+		else 
+		begin
+			if(counterEncrypt == 256)
+				csEncrypt = 1'b0;
+			else if(finishedEncrypt)
+			begin
+				csDecrypt = 1'b1;
+				csEncrypt = 1'b1;
+			end
+			else if(counterDecrypt == 256)
+			begin
+				csDecrypt = 1'b0;
+				csEncrypt = 1'b0;
+			end
+			else if(finishedDecrypt)
+				csDecrypt = 1'b1;
+		end
+	end
+
+	assign flagEncrypt = (!rst) ? (ciphertext_reg == 128'h69c4e0d86a7b0430d8cdb78070b4c55a):0;
+	assign flagDecrypt = (!rst) ? (originaltext_reg == 128'h00112233445566778899aabbccddeeff):0;
+	assign misoDecrypt = (counterDecrypt <= 128) ? mosiEncrypt : key_reg[counterDecrypt - 129];
 endmodule

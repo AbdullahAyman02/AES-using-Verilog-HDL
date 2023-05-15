@@ -73,7 +73,7 @@ end
 
 always @ (clk)
 begin
-	if(counter <= (Nk*32-1+128) && cs && clk != state)
+	if(counter <= (Nk*32-1+128) && cs && clk != state && !rst)
 		counter = counter + 1;
   else if (!cs || rst)
 	begin
