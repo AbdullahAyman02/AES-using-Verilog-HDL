@@ -77,42 +77,46 @@ module TestWrapper(
 	begin
 		if (stateEncrypt)
 		begin
-			if(counterEncrypt < 128)
-				misoEncrypt = plaintext_reg[counterEncrypt];
+			if(counterEncrypt < 127)
+				misoEncrypt = plaintext_reg[counterEncrypt+1];
 			else
-				misoEncrypt = key_reg[counterEncrypt - 128];
+				misoEncrypt = key_reg[counterEncrypt - 127];
 		end
 	end
  
-	always @(posedge clk, posedge rst, negedge csEncrypt)
+	always @(posedge clk)
 	begin
-	if (rst || !csEncrypt) 
+	if (!rst)
 		begin
-			counterEncrypt = -1;
-		end
-	else if (!rst)
-		begin
-			if(!stateEncrypt && counterEncrypt <= 127)
-				ciphertext_reg[counterEncrypt] = mosiEncrypt;
-			if (counterEncrypt <= 255)
-				counterEncrypt = counterEncrypt + 1;
+			if(!stateEncrypt && counterEncrypt <= 128)
+				ciphertext_reg[counterEncrypt-1] = mosiEncrypt;
 		end
   end
 
-	always @(posedge clk, posedge rst, negedge csDecrypt)
+	always @(posedge clk)
 	begin
-	if (rst || !csDecrypt) 
-		begin
-			counterDecrypt = -1;
-		end
-	else if (!rst)
+	if (!rst)
 		begin
 			if(!stateDecrypt && counterDecrypt <= 127)
 				originaltext_reg[counterDecrypt] = mosiDecrypt;
-			if (counterDecrypt <= 255)
-				counterDecrypt = counterDecrypt + 1;
 		end
   end
+
+	always @ (clk)
+	begin
+	if(counterEncrypt <= 255 && csEncrypt && clk == stateEncrypt && !rst)
+		counterEncrypt = counterEncrypt + 1;
+  else if (!csEncrypt || rst)
+	begin
+		counterEncrypt = -1;
+	end
+	if(counterDecrypt <= 255 && csDecrypt && clk != stateDecrypt && !rst)
+		counterDecrypt = counterDecrypt + 1;
+  else if (!csDecrypt || rst)
+	begin
+		counterDecrypt = -1;
+	end
+	end
 
 	always@(negedge clk, posedge rst)
 	begin
@@ -142,5 +146,5 @@ module TestWrapper(
 
 	assign flagEncrypt = (!rst) ? (ciphertext_reg == 128'h69c4e0d86a7b0430d8cdb78070b4c55a):0;
 	assign flagDecrypt = (!rst) ? (originaltext_reg == 128'h00112233445566778899aabbccddeeff):0;
-	assign misoDecrypt = (counterDecrypt <= 127) ? mosiEncrypt : key_reg[counterDecrypt - 128];
+	assign misoDecrypt = (counterDecrypt <= 128) ? mosiEncrypt : key_reg[counterDecrypt - 129];
 endmodule
