@@ -30,9 +30,6 @@ SPI #(Nk) serial(
 );
 
 wire [1919:0]w;
-wire [1407:0]w1;
-wire [1663:0]w2;
-wire [1919:0]w3;
 
 reg [127:0] buffer;
 integer round = 0;
