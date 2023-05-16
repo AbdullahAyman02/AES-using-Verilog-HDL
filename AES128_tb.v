@@ -1,4 +1,4 @@
-module Encrypt128_tb();
+module AES128_tb();
 
 reg clk;
 reg rst;
