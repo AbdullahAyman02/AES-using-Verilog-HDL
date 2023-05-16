@@ -2,15 +2,15 @@ module GeneralKeyExpansion#(parameter Nk=6,parameter Nr=12)
 (
     key,
     out,
-	 clk
-    
+	clk,
+    rst
 );
 
 
 localparam key_size = 4*(Nr+1)*32 - 1;
 
 input [Nk*4*8 - 1:0]key;
-input clk;
+input clk, rst;
 integer temp = 0;
 output reg [key_size:0]out;
 
@@ -26,28 +26,31 @@ wire [ 32*Nk - 1 :0] keyOut;
 
 generalExpandKey #(.Nk(Nk)) expandKey (r_con(counter),keyIn,keyOut);
 
-always @(posedge clk) 
-begin 
+always @(posedge clk, posedge rst) 
+begin
 
-   if (counter == 0) begin
+	if(rst)
+		counter = 0;
+   else if (!rst && counter == 0) begin
 	firstEdgeCheck = 0;
 	counter = counter + 1;
 	temp = 1;
 	end
-	else if (counter == 1 && temp == 2) begin 
+	else if (!rst && counter == 1 && temp == 2) begin 
 	keyIn = keyOut;
 	counter = counter + 1;
 	end
-	else if(counter == 1 && temp == 1) begin 
-	keyIn = key;
+	else if(!rst && counter == 1 && temp == 1) begin 
+	keyIn = (Nk == 4) ? {key[31 : 0], key[63 : 32], key[95 : 64], key[127 : 96]}:
+            (Nk == 6) ? {key[31 : 0], key[63 : 32], key[95 : 64], key[127 : 96], key[159 : 128], key[191 : 160]}:
+            {key[31 : 0], key[63 : 32], key[95 : 64], key[127 : 96], key[159 : 128], key[191 : 160], key[223 : 192], key[255 : 224]};
 	temp = 2;
 	end
-	else begin
+	else if(!rst) begin
 	keyIn = keyOut;
 	counter = counter + 1;
 	end
 	
-	 
 end
 
 always @(negedge clk) 
@@ -57,16 +60,17 @@ begin
 	out[key_size -: Nk*4*8] = key;
 	end 
 	else if(counter == 7 && Nk == 8) begin
-	out[key_size - Nk*4*8*counter -: 128] = keyOut[127 : 0];
+	out[key_size - Nk*4*8*counter -: 128] = {keyOut[31 : 0], keyOut[63 : 32], keyOut[95 : 64], keyOut[127 : 96]};
 	end
-	else if (Nk == 6 && counter == 8) begin 
-	out[key_size - Nk*4*8*counter -: 128] = keyOut[127 : 0];
-	end
+	else if (Nk == 6 && counter == 8)
+	out[key_size - Nk*4*8*counter -: 128] = {keyOut[31 : 0], keyOut[63 : 32], keyOut[95 : 64], keyOut[127 : 96]};
 	else begin 
-	out[key_size - Nk*4*8*counter -: Nk*4*8] = keyOut;
+	out[key_size - Nk*4*8*counter -: Nk*4*8] = (Nk == 4) ? {keyOut[31 : 0], keyOut[63 : 32], keyOut[95 : 64], keyOut[127 : 96]}:
+            (Nk == 6) ? {keyOut[31 : 0], keyOut[63 : 32], keyOut[95 : 64], keyOut[127 : 96], keyOut[159 : 128], keyOut[191 : 160]}:
+            {keyOut[31 : 0], keyOut[63 : 32], keyOut[95 : 64], keyOut[127 : 96], keyOut[159 : 128], keyOut[191 : 160], keyOut[223 : 192], keyOut[255 : 224]};
 	end
 	end
-	end
+end
 
 
 

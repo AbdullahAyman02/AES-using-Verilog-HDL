@@ -15,7 +15,7 @@ wire [127:0]in;
 reg [127:0]out;
 wire [Nk*32-1:0]key;
 
-localparam key_size = 1919;
+localparam key_size = 4*(Nr+1)*32 - 1;
 
 SPI #(Nk) serial(
     rst,
@@ -36,33 +36,38 @@ wire [1919:0]w3;
 
 reg [127:0] buffer;
 integer round = 0;
-wire [255:0]key_to_expand;
+wire [key_size:0]w_expand;
+integer counterExpand;
 
-assign key_to_expand = (Nk == 4) ? {{(128){1'b0}},key} : (Nk == 6) ? {{(64){1'b0}},key} : key;
+wire rstExpand;
+assign rstExpand = rst || (ready && !counterExpand);
 
-KeyExpansion key_expansion(key_to_expand[127:0], w1);
-KeyExpansion192 key_expansion192(key_to_expand[191:0], w2);
-KeyExpansion256 key_expansion256(key_to_expand[255:0], w3);
+GeneralKeyExpansion #(.Nk(Nk), .Nr(Nr)) key_expand(
+	.key(key),
+	.out(w_expand),
+	.clk(clk),
+	.rst(rstExpand)
+);
 
 wire [127:0] w_round;
 
-assign w_round = (round == 0) ? w[key_size: key_size - 127]:
-					 (round == 1) ? w[key_size - 128: key_size - 255]:
-					 (round == 2) ? w[key_size - 256: key_size - 383]:
-					 (round == 3) ? w[key_size - 384: key_size - 511]:
-					 (round == 4) ? w[key_size - 512: key_size - 639]:
-					 (round == 5) ? w[key_size - 640: key_size - 767]:
-					 (round == 6) ? w[key_size - 768: key_size - 895]:
-					 (round == 7) ? w[key_size - 896: key_size - 1023]:
-					 (round == 8) ? w[key_size - 1024: key_size - 1151]:
-					 (round == 9) ? w[key_size - 1152: key_size - 1279]:
-					 (round == 10) ? w[key_size - 1280: key_size - 1407]:
-					 (round == 11) ? w[key_size - 1408: key_size - 1535]:
-					 (round == 12) ? w[key_size - 1536: key_size - 1663]:
-					 (round == 13) ? w[key_size - 1664: key_size - 1791]:
-					 w[key_size - 1792: key_size - 1919];
+assign w_round = (round == 0) ? w[1919: 1919 - 127]:
+					 (round == 1) ? w[1919 - 128: 1919 - 255]:
+					 (round == 2) ? w[1919 - 256: 1919 - 383]:
+					 (round == 3) ? w[1919 - 384: 1919 - 511]:
+					 (round == 4) ? w[1919 - 512: 1919 - 639]:
+					 (round == 5) ? w[1919 - 640: 1919 - 767]:
+					 (round == 6) ? w[1919 - 768: 1919 - 895]:
+					 (round == 7) ? w[1919 - 896: 1919 - 1023]:
+					 (round == 8) ? w[1919 - 1024: 1919 - 1151]:
+					 (round == 9) ? w[1919 - 1152: 1919 - 1279]:
+					 (round == 10) ? w[1919 - 1280: 1919 - 1407]:
+					 (round == 11) ? w[1919 - 1408: 1919 - 1535]:
+					 (round == 12) ? w[1919 - 1536: 1919 - 1663]:
+					 (round == 13) ? w[1919 - 1664: 1919 - 1791]:
+					 w[1919 - 1792: 1919 - 1919];
 								 
-assign w = (Nk == 4) ? {w1,{(512){1'b0}}} : (Nk == 6) ? {w2,{(256){1'b0}}} : w3;
+assign w = (Nk == 4) ? {w_expand,{(512){1'b0}}} : (Nk == 6) ? {w_expand,{(256){1'b0}}} : w_expand;
 
 wire [127:0] sub_byte_out, sub_byte_out_last;
 
@@ -75,7 +80,7 @@ wire [127:0] add_round_key_out;
 reg [127:0] inround;
 wire [127:0] outfirst, outround, outroundlast;
 
-AddRoundKey add_round_key1(in, w[key_size: key_size - 127], outfirst);
+AddRoundKey add_round_key1(in, w[1919: 1919 - 127], outfirst);
   
 SubBytes sub_bytes1(inround, sub_byte_out);
 ShiftRows shift_rows1(sub_byte_out[127:96], sub_byte_out[95 :64], sub_byte_out[63 :32], sub_byte_out[31 : 0], shift_rows_out[127:96], shift_rows_out[95 :64], shift_rows_out[63 :32], shift_rows_out[31 : 0]);
@@ -89,18 +94,22 @@ begin
 	begin
 		round = 0;
 		finished = 1'b0;
+		counterExpand = 1'b0;
 	end
-	if(round == Nr)
+	else if (counterExpand < 15 && ready)
+		counterExpand = counterExpand + 1;
+	else if(round < Nr && ready)
+		round = round + 1;
+	else if(round == Nr && ready)
 	begin
 		out = outroundlast;
 		round = round + 1;
-		if(ready)
-			finished = 1'b1;
+		finished = 1'b1;
+		round = 0;
 	end
-	else if(round < Nr && ready)
-		round = round + 1;
-	else if(!cs)
+  else if(cs && finished)
 		finished = 1'b0;
+	
 end
 
 always@( negedge clk)
