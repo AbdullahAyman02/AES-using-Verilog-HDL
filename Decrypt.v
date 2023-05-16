@@ -25,7 +25,8 @@ SPI #(Nk) serial(
     in,
 	mosi,
     out, 
-	 ready
+	 ready,
+	 finished
 );
 
 wire [1919:0]w;
@@ -102,6 +103,7 @@ begin
 		round = round - 1;
 		finished = 1'b1;
 		round = Nr;
+		counterExpand = 0;
 	end
   else if(cs && finished)
 		finished = 1'b0;

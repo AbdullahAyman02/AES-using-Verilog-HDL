@@ -7,13 +7,15 @@ module SPI#(parameter Nk=4)(
     parallelmessageout,
 		mosi,
     parallelprocessedin,
-	 ready
+	 ready,
+	 finished
 );
 
 input rst;
 input clk;
 input cs;
 input miso;
+input wire finished;
 input [127:0] parallelprocessedin;
 output reg [Nk*32-1:0] parallelkeyout;
 output reg [127:0] parallelmessageout;
@@ -45,10 +47,14 @@ begin
 			end      
 end
 
-always @ (negedge cs, posedge rst)
+always @ (negedge cs, posedge rst, posedge finished)
 begin
-	if(rst)
+	if(rst) begin
 		state = 1'b1;
+		ready = 0;
+	end
+	else if(finished)
+		ready = 0;
 	else if(!cs)
 	begin
 		state = ~state;
@@ -58,7 +64,6 @@ begin
 			ready = 1'b0;
 	end
 end
-
 
 always @ (negedge clk)
 begin
