@@ -2,11 +2,6 @@
 
 <div align="center"><img src="https://media.geeksforgeeks.org/wp-content/uploads/20200427214520/AES1.png" alt="AES logo" width="1000px"></div>
 
-## Table of Contents
-
-* [Project Description](#Project-Description)
-* [Project Document and References](#Project-Document-and-References)
-
 # Project Description
 
 The common encryption technique AES utilizes key sizes of 128, 192, and 256 bits and operates on 128-bit blocks. In this project, we were required to implement encryption and decryption modules for all three key sizes.
