@@ -17,7 +17,7 @@ Furthermore, we needed to implement a thorough testbench that validates the oper
 
 A test wrapper is also used to make testing on the DE1-SoC board easier. The encryption and decryption modules' inputs are driven by the test wrapper, which also uses an LED to display the test results. This makes it simple to check the modules' functionality in a hardware setting.
 
-# Project Documnet and References
+# Project Document and References
 * [CMPN111 Spring 2023 - Project Description.pdf](https://github.com/AbdullahAyman02/AES-using-Verilog-HDL/files/12693709/CMPN111.Spring.2023.-.Project.Description.pdf)
 * [NIST.FIPS.197.pdf](https://github.com/AbdullahAyman02/AES-using-Verilog-HDL/files/12693715/NIST.FIPS.197.pdf)
 * [Introduction to SPI Interface.pdf](https://github.com/AbdullahAyman02/AES-using-Verilog-HDL/files/12693716/Introduction.to.SPI.Interface.pdf)
